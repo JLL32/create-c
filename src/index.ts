@@ -1,37 +1,48 @@
 #!/usr/bin/env node
 
 import readline from "readline";
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-  terminal: false,
-});
+import util from 'util';
 
 class Question {
-  constructor(public question: string, public defaultVal: string | boolean) {}
+  constructor(public question: string, public defaultVal: string | boolean) { }
 }
 
-const questions = {
+interface IQuestions {
+  projectName: Question;
+  entryPoint: Question;
+  outputName: Question;
+  debugConfig: Question;
+  gitIgnore: Question;
+}
+
+const questions: IQuestions = {
   projectName: new Question("project name (c-project): ", "c-project"),
   entryPoint: new Question("entry point (main.c): ", "main.c"),
   outputName: new Question("output name (a.out): ", "a.out"),
-  debugConfig: new Question("include debug config? (yes): ", false),
+  debugConfig: new Question("Include debug config? (yes): ", false),
+  gitIgnore: new Question("Include .gitignore C template? (yes): ", false),
 };
 
-rl.question(questions.projectName.question, (answer) => {
-  questions.projectName.defaultVal = answer;
-  rl.question(questions.entryPoint.question, (answer) => {
-    questions.entryPoint.defaultVal = answer;
-    rl.question(questions.outputName.question, (answer) => {
-      questions.outputName.defaultVal = answer;
-      rl.question(questions.debugConfig.question, (answer) => {
-        questions.debugConfig.defaultVal = answer;
-        console.log(questions);
-        rl.close();
-      });
-    });
-  });
-});
+const collectAnswers = async function (questions: Question[], readlineInterface: readline.Interface) {
+  const qWrapper = (question: string, cb: (err: Error | null, data: string) => void) => {
+    readlineInterface.question(question, answer => cb(null, answer));
+  }
+  const ask = util.promisify(qWrapper);
+  for (const question of questions) {
+    const answer = await ask(question.question);
+    question.defaultVal = answer;
+  }
+  readlineInterface.close();
+};
 
-rl.on("close", () => console.log("Scaffolding your project..."));
+const main = async function () {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    terminal: false,
+  });
+  await collectAnswers(Object.values(questions), rl);
+  console.log("Scaffolding your project...");
+};
+
+await main();
