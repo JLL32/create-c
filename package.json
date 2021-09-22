@@ -4,7 +4,7 @@
     "description": "Create C projects with zero configuration",
     "main": "./dist/index.js",
     "bin": {
-        "pizza": "./dist/index.js"
+        "create-c": "./dist/index.js"
     },
     "scripts": {
         "run": "./node_modules/.bin/tsc && node dist/index.js",
