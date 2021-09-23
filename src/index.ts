@@ -2,6 +2,7 @@
 
 import readline from "readline";
 import util from 'util';
+import fs from 'fs/promises';
 
 class Question {
   constructor(public question: string, public defaultVal: string | boolean) { }
@@ -35,6 +36,24 @@ const collectAnswers = async function (questions: Question[], readlineInterface:
   readlineInterface.close();
 };
 
+const scaffold = function (dir: string, questions: IQuestions) {
+	const createProjectFolder = (projectName: string) => {
+
+	};
+	const writeMakefile = (outputName: string) => {
+
+	};
+	const writeGitIgnore = (outputName: string) => {
+
+	};
+	const writeEntryPoint = (entryPointName: string) => {
+
+	};
+	const writeHeaderFile = (outputName: string) => {
+
+	};
+}
+
 const main = async function () {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -43,6 +62,8 @@ const main = async function () {
   });
   await collectAnswers(Object.values(questions), rl);
   console.log("Scaffolding your project...");
+  scaffold(process.cwd(), questions);
+  console.log(process.cwd())
 };
 
 await main();
