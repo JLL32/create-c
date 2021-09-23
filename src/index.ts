@@ -18,7 +18,7 @@ interface IQuestions {
 const questions: IQuestions = {
   projectName: new Question("project name (c-project): ", "c-project"),
   entryPoint: new Question("entry point (main.c): ", "main.c"),
-  outputName: new Question("output name (a.out): ", "a.out"),
+  outputName: new Question("output name (program): ", "a.out"),
   debugConfig: new Question("Include debug config? (yes): ", false),
   gitIgnore: new Question("Include .gitignore C template? (yes): ", false),
 };
