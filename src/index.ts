@@ -2,7 +2,8 @@
 
 import readline from "readline";
 import util from 'util';
-import fs from 'fs/promises';
+import fs from 'fs';
+import path from 'path';
 
 class Question {
   constructor(public question: string, public defaultVal: string | boolean) { }
@@ -37,9 +38,23 @@ const collectAnswers = async function (questions: Question[], readlineInterface:
 };
 
 const scaffold = function (dir: string, questions: IQuestions) {
-	const createProjectFolder = (projectName: string) => {
-
+	const createProjectFolder = (dir: string, projectName: string): string | Error => {
+		const fullName = path.join(dir, projectName);
+		try {
+			if(!fs.existsSync(fullName)) {
+				fs.mkdirSync(fullName);
+			}
+		} catch (err) {
+			if (err instanceof Error) {
+				return err;
+			}
+		}
+		return fullName;
 	};
+	const err = createProjectFolder(dir, questions.projectName.defaultVal.toString());
+	if (err instanceof Error) {
+		console.log(err.message);
+	}
 	const writeMakefile = (outputName: string) => {
 
 	};
