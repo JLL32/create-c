@@ -2,7 +2,7 @@
 
 import readline from "readline";
 import util from 'util';
-import fs from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
 
 class Question {
@@ -38,13 +38,11 @@ const collectAnswers = async function (questions: Question[], readlineInterface:
   readlineInterface.close();
 };
 
-const scaffold = function (dir: string, questions: IQuestions) {
-	const createProjectFolder = (dir: string, projectName: string): string | Error => {
+const scaffold = async function (dir: string, questions: IQuestions) {
+	const createProjectFolder = async (dir: string, projectName: string): Promise<string | Error> => {
 		const fullName = path.join(dir, projectName);
 		try {
-			if(!fs.existsSync(fullName)) {
-				fs.mkdirSync(fullName);
-			}
+			await fs.mkdir(fullName);
 		} catch (err) {
 			if (err instanceof Error) {
 				return err;
@@ -52,12 +50,13 @@ const scaffold = function (dir: string, questions: IQuestions) {
 		}
 		return fullName;
 	};
-	const err = createProjectFolder(dir, questions.projectName.defaultVal.toString());
-	if (err instanceof Error) {
-		console.log(err.message);
-	}
-	const writeMakefile = (outputName: string) => {
 
+
+	const writeMakefile = async (dir: string, outputName: string) => {
+		const file = await fs.readFile(path.resolve('../template/Makefile'), {encoding: 'utf8'});
+		const pathToNewMakefile = path.join(dir + 'Makefile');
+		file.toString().replace('program', outputName);
+		await fs.writeFile(pathToNewMakefile, file);
 	};
 	const writeGitIgnore = (outputName: string) => {
 
@@ -68,6 +67,13 @@ const scaffold = function (dir: string, questions: IQuestions) {
 	const writeHeaderFile = (outputName: string) => {
 
 	};
+
+	const projectName = await createProjectFolder(dir, questions.projectName.defaultVal.toString());
+	if (projectName instanceof Error) {
+		console.log(projectName.message);
+		return;
+	}
+	await writeMakefile(path.join(dir, projectName as string), questions.outputName.defaultVal as string);
 }
 
 const main = async function () {
@@ -78,7 +84,7 @@ const main = async function () {
   });
   await collectAnswers(Object.values(questions), rl);
   console.log("Scaffolding your project...");
-  scaffold(process.cwd(), questions);
+  await scaffold(process.cwd(), questions);
   console.log(process.cwd())
 };
 
