@@ -32,7 +32,8 @@ const collectAnswers = async function (questions: Question[], readlineInterface:
   const ask = util.promisify(qWrapper);
   for (const question of questions) {
     const answer = await ask(question.question);
-    question.defaultVal = answer;
+	if (answer.length > 0)
+		question.defaultVal = answer;
   }
   readlineInterface.close();
 };
