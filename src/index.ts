@@ -32,48 +32,55 @@ const collectAnswers = async function (questions: Question[], readlineInterface:
   const ask = util.promisify(qWrapper);
   for (const question of questions) {
     const answer = await ask(question.question);
-	if (answer.length > 0)
-		question.defaultVal = answer;
+    if (answer.length > 0)
+      question.defaultVal = answer;
   }
   readlineInterface.close();
 };
 
 const scaffold = async function (dir: string, questions: IQuestions) {
-	const createProjectFolder = async (dir: string, projectName: string): Promise<string | Error> => {
-		const fullName = path.join(dir, projectName);
-		try {
-			await fs.mkdir(fullName);
-		} catch (err) {
-			if (err instanceof Error) {
-				return err;
-			}
-		}
-		return fullName;
-	};
+  const createProjectFolder = async (dir: string, projectName: string): Promise<string | Error> => {
+    const fullDir = path.join(dir, projectName);
+    try {
+      await fs.mkdir(fullDir);
+    } catch (err) {
+      if (err instanceof Error) {
+        return err;
+      }
+    }
+    return fullDir;
+  };
 
 
-	const writeMakefile = async (dir: string, outputName: string) => {
-		const file = await fs.readFile(path.resolve('../template/Makefile'), {encoding: 'utf8'});
-		const pathToNewMakefile = path.join(dir + 'Makefile');
-		file.toString().replace('program', outputName);
-		await fs.writeFile(pathToNewMakefile, file);
-	};
-	const writeGitIgnore = (outputName: string) => {
+  const writeMakefile = async (dir: string, outputName: string) => {
+    const file = await fs.readFile(path.resolve('template/Makefile'), { encoding: 'utf8' });
+    const pathToNewMakefile = path.join(dir + '/Makefile');
+    file.toString().replace('program', outputName);
+    await fs.writeFile(pathToNewMakefile, file);
+  };
 
-	};
-	const writeEntryPoint = (entryPointName: string) => {
+  const writeGitIgnore = async (dir: string, outputName: string) => {
+    const file = await fs.readFile(path.resolve('template/.gitignore'), { encoding: 'utf8' });
+    const pathToNewGitIgnore = path.join(dir + '/.gitignore');
+    file.toString().replace('program', outputName);
+    await fs.writeFile(pathToNewGitIgnore, file);
+  };
 
-	};
-	const writeHeaderFile = (outputName: string) => {
+  const writeEntryPoint = (entryPointName: string) => {
 
-	};
+  };
+  const writeHeaderFile = (outputName: string) => {
 
-	const projectName = await createProjectFolder(dir, questions.projectName.defaultVal.toString());
-	if (projectName instanceof Error) {
-		console.log(projectName.message);
-		return;
-	}
-	await writeMakefile(path.join(dir, projectName as string), questions.outputName.defaultVal as string);
+  };
+
+  const projectDir = await createProjectFolder(dir, questions.projectName.defaultVal.toString());
+  if (projectDir instanceof Error) {
+    console.log(projectDir.message);
+    return;
+  }
+  await writeMakefile(projectDir as string, questions.outputName.defaultVal as string);
+  if (questions.gitIgnore.defaultVal)
+    await writeGitIgnore(projectDir as string, questions.outputName.defaultVal as string);
 }
 
 const main = async function () {
