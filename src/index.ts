@@ -22,7 +22,7 @@ interface IQuestions {
 const questions: IQuestions = {
   projectName: new Question("project name (c-project): ", "c-project"),
   entryPoint: new Question("entry point (main.c): ", "main.c"),
-  outputName: new Question("output name (program): ", "a.out"),
+  outputName: new Question("output name (program): ", "program"),
   debugConfig: new Question("Include debug config? (yes): ", true),
   gitIgnore: new Question("Include .gitignore C template? (yes): ", true),
 };
