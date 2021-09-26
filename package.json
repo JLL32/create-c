@@ -7,7 +7,7 @@
         "create-c": "./dist/index.js"
     },
     "scripts": {
-        "run": "npm run build && node dist/index.js",
+        "start": "npm run build && node dist/index.js",
         "test": "echo \"Error: no test specified\" && exit 1",
         "build": "./node_modules/.bin/tsc"
     },
