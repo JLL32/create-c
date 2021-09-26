@@ -46,7 +46,7 @@ const scaffold = function (cwd: string, questions: IQuestions) {
     try {
       fs.mkdirSync(fullDir);
     } catch (err) {
-        return err as Error;
+      return err as Error;
     }
     return fullDir;
   };
@@ -66,7 +66,7 @@ const scaffold = function (cwd: string, questions: IQuestions) {
   const templateDir = path.dirname(url.fileURLToPath(import.meta.url)) + '/../template';
   scaffoldFile(path.join(templateDir, '/Makefile'), path.join(projectDir, '/Makefile'), 'NAME=program', `NAME=${questions.outputName.defaultVal}`);
   if (questions.gitIgnore.defaultVal) {
-    exec(`git init ${projectDir}`);
+    exec(`git init ${questions.projectName.defaultVal}`);
     scaffoldFile(path.join(templateDir, '/.gitignore'), path.join(projectDir, '/.gitignore'), 'program', `${questions.outputName.defaultVal}`);
   }
   createFolder(projectDir, 'src');
