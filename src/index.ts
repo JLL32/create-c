@@ -67,7 +67,7 @@ const scaffold = function (cwd: string, questions: IQuestions) {
   scaffoldFile(path.join(templateDir, '/Makefile'), path.join(projectDir, '/Makefile'), 'NAME=program', `NAME=${questions.outputName.defaultVal}`);
   if (questions.gitIgnore.defaultVal) {
     exec(`git init ${questions.projectName.defaultVal}`);
-    scaffoldFile(path.join(templateDir, '/.gitignore'), path.join(projectDir, '/.gitignore'), 'program', `${questions.outputName.defaultVal}`);
+    scaffoldFile(path.join(templateDir, '/gitignore'), path.join(projectDir, '/.gitignore'), 'program', `${questions.outputName.defaultVal}`);
   }
   createFolder(projectDir, 'src');
   scaffoldFile(path.join(templateDir, '/src/main.c'), path.join(projectDir, `/src/${questions.entryPoint.defaultVal}`), '#include "../include/program.h"', `#include "../include/${questions.outputName.defaultVal}.h"`);
