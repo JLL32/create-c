@@ -1,6 +1,6 @@
 CC=gcc
 SRC=src/main.c
-INCLUDE=include/program.h
+INCLUDE=include/*.h
 DEPS= $(SRC) $(INCLUDE)
 CFLAGS=-Wall -Wextra -Werror
 DFLAGS=-g -fsanitize=address
