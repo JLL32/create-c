@@ -2,7 +2,7 @@
 
 import readline from "readline";
 import util from 'util';
-import fs from 'fs/promises';
+import fs from 'fs';
 import path from 'path';
 import { exec } from "child_process";
 import url from 'url';
@@ -40,44 +40,42 @@ const collectAnswers = async function (questions: Question[], readlineInterface:
   readlineInterface.close();
 };
 
-const scaffold = async function (cwd: string, questions: IQuestions) {
-  const createFolder = async (dir: string, projectName: string): Promise<string | Error> => {
+const scaffold = function (cwd: string, questions: IQuestions) {
+  const createFolder = (dir: string, projectName: string): string | Error => {
     const fullDir = path.join(dir, projectName);
     try {
-      await fs.mkdir(fullDir);
+      fs.mkdirSync(fullDir);
     } catch (err) {
-      if (err instanceof Error) {
-        return err;
-      }
+        return err as Error;
     }
     return fullDir;
   };
 
-  const scaffoldFile = async (fileDir: string, newFileDir: string, replaced?: string, replacing?: string) => {
-    let file = (await fs.readFile(fileDir, { encoding: 'utf8' }));
+  const scaffoldFile = (fileDir: string, newFileDir: string, replaced?: string, replacing?: string) => {
+    let file = fs.readFileSync(fileDir, { encoding: 'utf8' });
     if (replaced && replacing)
       file = file.replace(replaced, replacing);
-    await fs.writeFile(newFileDir, file);
+    fs.writeFileSync(newFileDir, file);
   }
 
-  const projectDir = await createFolder(cwd, questions.projectName.defaultVal.toString());
+  const projectDir = createFolder(cwd, questions.projectName.defaultVal as string);
   if (projectDir instanceof Error) {
     console.log(projectDir.message);
     return;
   }
   const templateDir = path.dirname(url.fileURLToPath(import.meta.url)) + '/../template';
-  await scaffoldFile(path.join(templateDir, '/Makefile'), path.join(projectDir, '/Makefile'), 'NAME=program', `NAME=${questions.outputName.defaultVal}`);
+  scaffoldFile(path.join(templateDir, '/Makefile'), path.join(projectDir, '/Makefile'), 'NAME=program', `NAME=${questions.outputName.defaultVal}`);
   if (questions.gitIgnore.defaultVal) {
-    exec("git init");
-    await scaffoldFile(path.join(templateDir, '/.gitignore'), path.join(projectDir, '/.gitignore'), 'program', `${questions.outputName.defaultVal}`);
+    exec(`git init ${projectDir}`);
+    scaffoldFile(path.join(templateDir, '/.gitignore'), path.join(projectDir, '/.gitignore'), 'program', `${questions.outputName.defaultVal}`);
   }
-  await createFolder(projectDir, 'src');
-  await scaffoldFile(path.join(templateDir, '/src/main.c'), path.join(projectDir, `/src/${questions.entryPoint.defaultVal}`), '#include "../include/program.h"', `#include "../include/${questions.outputName.defaultVal}.h"`);
-  await createFolder(projectDir, 'include');
-  await scaffoldFile(path.join(templateDir, '/include/program.h'), path.join(projectDir, `/include/${questions.outputName.defaultVal}.h`));
+  createFolder(projectDir, 'src');
+  scaffoldFile(path.join(templateDir, '/src/main.c'), path.join(projectDir, `/src/${questions.entryPoint.defaultVal}`), '#include "../include/program.h"', `#include "../include/${questions.outputName.defaultVal}.h"`);
+  createFolder(projectDir, 'include');
+  scaffoldFile(path.join(templateDir, '/include/program.h'), path.join(projectDir, `/include/${questions.outputName.defaultVal}.h`));
   if (questions.debugConfig.defaultVal) {
-    await createFolder(projectDir, '.vscode');
-    await scaffoldFile(path.join(templateDir, '/.vscode/launch.json'), path.join(projectDir, `/.vscode/launch.json`), '"program": "${workspaceFolder}/program",', `"program": "\${workspaceFolder}/${questions.outputName.defaultVal}",`);
+    createFolder(projectDir, '.vscode');
+    scaffoldFile(path.join(templateDir, '/.vscode/launch.json'), path.join(projectDir, `/.vscode/launch.json`), '"program": "${workspaceFolder}/program",', `"program": "\${workspaceFolder}/${questions.outputName.defaultVal}",`);
   }
 }
 
@@ -89,7 +87,7 @@ const main = async function () {
   });
   await collectAnswers(Object.values(questions), rl);
   console.log("Scaffolding your project...");
-  await scaffold(process.cwd(), questions);
+  scaffold(process.cwd(), questions);
   console.log(process.cwd())
 };
 
