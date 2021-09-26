@@ -41,6 +41,7 @@ const collectAnswers = async function (questions: Question[], readlineInterface:
 };
 
 const scaffold = function (cwd: string, questions: IQuestions) {
+
   const createFolder = (dir: string, projectName: string): string | Error => {
     const fullDir = path.join(dir, projectName);
     try {
@@ -63,20 +64,25 @@ const scaffold = function (cwd: string, questions: IQuestions) {
     console.log(projectDir.message);
     return;
   }
+
   const templateDir = path.dirname(url.fileURLToPath(import.meta.url)) + '/../template';
-  scaffoldFile(path.join(templateDir, '/Makefile'), path.join(projectDir, '/Makefile'), 'NAME=program', `NAME=${questions.outputName.defaultVal}`);
+
+  const inProjectDir = (filename: string) => path.join(projectDir as string, filename);
+  const inTemplateDir = (filename: string) => path.join(templateDir as string, filename);
+
+  scaffoldFile(inTemplateDir('Makefile'), inProjectDir('Makefile'), 'NAME=program', `NAME=${questions.outputName.defaultVal}`);
   if (questions.gitIgnore.defaultVal) {
     exec(`git init ${questions.projectName.defaultVal}`);
-    scaffoldFile(path.join(templateDir, '/gitignore'), path.join(projectDir, '/.gitignore'), 'program', `${questions.outputName.defaultVal}`);
+    scaffoldFile(inTemplateDir('/gitignore'), inProjectDir('/.gitignore'), 'program', `${questions.outputName.defaultVal}`);
   }
   createFolder(projectDir, 'src');
-  scaffoldFile(path.join(templateDir, '/src/main.c'), path.join(projectDir, `/src/${questions.entryPoint.defaultVal}`), '#include "../include/program.h"', `#include "../include/${questions.outputName.defaultVal}.h"`);
+  scaffoldFile(inTemplateDir('src/main.c'), inProjectDir(`src/${questions.entryPoint.defaultVal}`), '#include "../include/program.h"', `#include "../include/${questions.outputName.defaultVal}.h"`);
   createFolder(projectDir, 'include');
-  scaffoldFile(path.join(templateDir, '/include/program.h'), path.join(projectDir, `/include/${questions.outputName.defaultVal}.h`));
+  scaffoldFile(inTemplateDir('include/program.h'), inProjectDir(`include/${questions.outputName.defaultVal}.h`));
   if (questions.debugConfig.defaultVal) {
     createFolder(projectDir, '.vscode');
-    scaffoldFile(path.join(templateDir, '/.vscode/launch.json'), path.join(projectDir, `/.vscode/launch.json`), '"program": "${workspaceFolder}/program",', `"program": "\${workspaceFolder}/${questions.outputName.defaultVal}",`);
-    scaffoldFile(path.join(templateDir, '/.vscode/tasks.json'), path.join(projectDir, `/.vscode/tasks.json`));
+    scaffoldFile(inTemplateDir('.vscode/launch.json'), inProjectDir(`.vscode/launch.json`), '"program": "${workspaceFolder}/program",', `"program": "\${workspaceFolder}/${questions.outputName.defaultVal}",`);
+    scaffoldFile(inTemplateDir('.vscode/tasks.json'), inProjectDir(`.vscode/tasks.json`));
   }
 }
 
@@ -87,9 +93,9 @@ const main = async function () {
     terminal: false,
   });
   await collectAnswers(Object.values(questions), rl);
-  console.log("Scaffolding your project...");
+  console.log("Scaffolding your project 🪄");
   scaffold(process.cwd(), questions);
-  console.log(process.cwd())
+  console.log("Done 🎉");
 };
 
 await main();
