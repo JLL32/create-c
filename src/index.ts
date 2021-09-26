@@ -4,6 +4,7 @@ import readline from "readline";
 import util from 'util';
 import fs from 'fs/promises';
 import path from 'path';
+import { exec } from "child_process";
 
 class Question {
   constructor(public question: string, public defaultVal: string | boolean) { }
@@ -21,8 +22,8 @@ const questions: IQuestions = {
   projectName: new Question("project name (c-project): ", "c-project"),
   entryPoint: new Question("entry point (main.c): ", "main.c"),
   outputName: new Question("output name (program): ", "a.out"),
-  debugConfig: new Question("Include debug config? (yes): ", false),
-  gitIgnore: new Question("Include .gitignore C template? (yes): ", false),
+  debugConfig: new Question("Include debug config? (yes): ", true),
+  gitIgnore: new Question("Include .gitignore C template? (yes): ", true),
 };
 
 const collectAnswers = async function (questions: Question[], readlineInterface: readline.Interface) {
@@ -39,7 +40,7 @@ const collectAnswers = async function (questions: Question[], readlineInterface:
 };
 
 const scaffold = async function (dir: string, questions: IQuestions) {
-  const createProjectFolder = async (dir: string, projectName: string): Promise<string | Error> => {
+  const createFolder = async (dir: string, projectName: string): Promise<string | Error> => {
     const fullDir = path.join(dir, projectName);
     try {
       await fs.mkdir(fullDir);
@@ -51,36 +52,32 @@ const scaffold = async function (dir: string, questions: IQuestions) {
     return fullDir;
   };
 
+  const scaffoldFile = async (fileDir: string, newFileDir: string, replaced?: string, replacing?: string) => {
+    let file = (await fs.readFile(fileDir, { encoding: 'utf8' }));
+    if (replaced && replacing)
+      file = file.replace(replaced, replacing);
+    await fs.writeFile(newFileDir, file);
+  }
 
-  const writeMakefile = async (dir: string, outputName: string) => {
-    const file = await fs.readFile(path.resolve('template/Makefile'), { encoding: 'utf8' });
-    const pathToNewMakefile = path.join(dir + '/Makefile');
-    file.toString().replace('program', outputName);
-    await fs.writeFile(pathToNewMakefile, file);
-  };
-
-  const writeGitIgnore = async (dir: string, outputName: string) => {
-    const file = await fs.readFile(path.resolve('template/.gitignore'), { encoding: 'utf8' });
-    const pathToNewGitIgnore = path.join(dir + '/.gitignore');
-    file.toString().replace('program', outputName);
-    await fs.writeFile(pathToNewGitIgnore, file);
-  };
-
-  const writeEntryPoint = (entryPointName: string) => {
-
-  };
-  const writeHeaderFile = (outputName: string) => {
-
-  };
-
-  const projectDir = await createProjectFolder(dir, questions.projectName.defaultVal.toString());
+  const projectDir = await createFolder(dir, questions.projectName.defaultVal.toString());
   if (projectDir instanceof Error) {
     console.log(projectDir.message);
     return;
   }
-  await writeMakefile(projectDir as string, questions.outputName.defaultVal as string);
-  if (questions.gitIgnore.defaultVal)
-    await writeGitIgnore(projectDir as string, questions.outputName.defaultVal as string);
+  const templateDir = path.resolve('template');
+  await scaffoldFile(path.join(templateDir, '/Makefile'), path.join(projectDir, '/Makefile'), 'NAME=program', `NAME=${questions.outputName.defaultVal}`);
+  if (questions.gitIgnore.defaultVal) {
+    exec("git init");
+    await scaffoldFile(path.join(templateDir, '/.gitignore'), path.join(projectDir, '/.gitignore'), 'program', `${questions.outputName.defaultVal}`);
+  }
+  await createFolder(projectDir, 'src');
+  await scaffoldFile(path.join(templateDir, '/src/main.c'), path.join(projectDir, `/src/${questions.entryPoint.defaultVal}`), '#include "../include/program.h"', `#include "../include/${questions.outputName.defaultVal}.h"`);
+  await createFolder(projectDir, 'include');
+  await scaffoldFile(path.join(templateDir, '/include/program.h'), path.join(projectDir, `/include/${questions.outputName.defaultVal}.h`));
+  if (questions.debugConfig.defaultVal) {
+    await createFolder(projectDir, '.vscode');
+    await scaffoldFile(path.join(templateDir, '/.vscode/launch.json'), path.join(projectDir, `/.vscode/launch.json`), '"program": "${workspaceFolder}/program",', `"program": "\${workspaceFolder}/${questions.outputName.defaultVal}",`);
+  }
 }
 
 const main = async function () {
