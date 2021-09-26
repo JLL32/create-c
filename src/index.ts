@@ -76,6 +76,7 @@ const scaffold = function (cwd: string, questions: IQuestions) {
   if (questions.debugConfig.defaultVal) {
     createFolder(projectDir, '.vscode');
     scaffoldFile(path.join(templateDir, '/.vscode/launch.json'), path.join(projectDir, `/.vscode/launch.json`), '"program": "${workspaceFolder}/program",', `"program": "\${workspaceFolder}/${questions.outputName.defaultVal}",`);
+    scaffoldFile(path.join(templateDir, '/.vscode/tasks.json'), path.join(projectDir, `/.vscode/tasks.json`));
   }
 }
 
