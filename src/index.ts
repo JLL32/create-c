@@ -20,11 +20,11 @@ interface IQuestions {
 }
 
 const questions: IQuestions = {
-  projectName: new Question("project name (c-project): ", "c-project"),
-  entryPoint: new Question("entry point (main.c): ", "main.c"),
-  outputName: new Question("output name (program): ", "program"),
-  debugConfig: new Question("Include debug config? (yes): ", true),
-  gitIgnore: new Question("Include .gitignore C template? (yes): ", true),
+  projectName: new Question("Project name (c-project): ", "c-project"),
+  entryPoint: new Question("Entry point (main.c): ", "main.c"),
+  outputName: new Question("Output name (program): ", "program"),
+  debugConfig: new Question("Debugging configuration? (yes): ", true),
+  gitIgnore: new Question(".gitignore? (yes): ", true),
 };
 
 const collectAnswers = async function (questions: Question[], readlineInterface: readline.Interface) {
