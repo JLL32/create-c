@@ -5,6 +5,7 @@ import util from 'util';
 import fs from 'fs/promises';
 import path from 'path';
 import { exec } from "child_process";
+import url from 'url';
 
 class Question {
   constructor(public question: string, public defaultVal: string | boolean) { }
@@ -39,7 +40,7 @@ const collectAnswers = async function (questions: Question[], readlineInterface:
   readlineInterface.close();
 };
 
-const scaffold = async function (dir: string, questions: IQuestions) {
+const scaffold = async function (cwd: string, questions: IQuestions) {
   const createFolder = async (dir: string, projectName: string): Promise<string | Error> => {
     const fullDir = path.join(dir, projectName);
     try {
@@ -59,12 +60,12 @@ const scaffold = async function (dir: string, questions: IQuestions) {
     await fs.writeFile(newFileDir, file);
   }
 
-  const projectDir = await createFolder(dir, questions.projectName.defaultVal.toString());
+  const projectDir = await createFolder(cwd, questions.projectName.defaultVal.toString());
   if (projectDir instanceof Error) {
     console.log(projectDir.message);
     return;
   }
-  const templateDir = path.resolve('template');
+  const templateDir = path.dirname(url.fileURLToPath(import.meta.url)) + '/../template';
   await scaffoldFile(path.join(templateDir, '/Makefile'), path.join(projectDir, '/Makefile'), 'NAME=program', `NAME=${questions.outputName.defaultVal}`);
   if (questions.gitIgnore.defaultVal) {
     exec("git init");
