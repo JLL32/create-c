@@ -1,6 +1,6 @@
 {
     "name": "create-c",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "Create C projects with zero configuration",
     "main": "./dist/index.js",
     "bin": {
