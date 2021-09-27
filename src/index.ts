@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 import readline from "readline";
-import util from 'util';
-import fs from 'fs';
-import path from 'path';
+import util from "util";
+import fs from "fs";
+import path from "path";
 import { exec } from "child_process";
-import url from 'url';
+import url from "url";
 
 class Question {
-  constructor(public question: string, public defaultVal: string | boolean) { }
+  constructor(public question: string, public defaultVal: string | boolean) {}
 }
 
 interface IQuestions {
@@ -27,21 +27,25 @@ const questions: IQuestions = {
   gitIgnore: new Question(".gitignore? (yes): ", true),
 };
 
-const collectAnswers = async function (questions: Question[], readlineInterface: readline.Interface) {
-  const qWrapper = (question: string, cb: (err: Error | null, data: string) => void) => {
-    readlineInterface.question(question, answer => cb(null, answer));
-  }
+const collectAnswers = async function (
+  questions: Question[],
+  readlineInterface: readline.Interface
+) {
+  const qWrapper = (
+    question: string,
+    cb: (err: Error | null, data: string) => void
+  ) => {
+    readlineInterface.question(question, (answer) => cb(null, answer));
+  };
   const ask = util.promisify(qWrapper);
   for (const question of questions) {
     const answer = await ask(question.question);
-    if (answer.length > 0)
-      question.defaultVal = answer;
+    if (answer.length > 0) question.defaultVal = answer;
   }
   readlineInterface.close();
 };
 
 const scaffold = function (cwd: string, questions: IQuestions) {
-
   const createFolder = (dir: string, projectName: string): string | Error => {
     const fullDir = path.join(dir, projectName);
     try {
@@ -52,39 +56,75 @@ const scaffold = function (cwd: string, questions: IQuestions) {
     return fullDir;
   };
 
-  const scaffoldFile = (fileDir: string, newFileDir: string, replaced?: string, replacing?: string) => {
-    let file = fs.readFileSync(fileDir, { encoding: 'utf8' });
-    if (replaced && replacing)
-      file = file.replace(replaced, replacing);
+  const scaffoldFile = (
+    fileDir: string,
+    newFileDir: string,
+    replaced?: string,
+    replacing?: string
+  ) => {
+    let file = fs.readFileSync(fileDir, { encoding: "utf8" });
+    if (replaced && replacing) file = file.replace(replaced, replacing);
     fs.writeFileSync(newFileDir, file);
-  }
+  };
 
-  const projectDir = createFolder(cwd, questions.projectName.defaultVal as string);
+  const projectDir = createFolder(
+    cwd,
+    questions.projectName.defaultVal as string
+  );
   if (projectDir instanceof Error) {
     console.log(projectDir.message);
     return;
   }
 
-  const templateDir = path.dirname(url.fileURLToPath(import.meta.url)) + '/../template';
+  const templateDir =
+    path.dirname(url.fileURLToPath(import.meta.url)) + "/../template";
 
-  const inProjectDir = (filename: string) => path.join(projectDir as string, filename);
-  const inTemplateDir = (filename: string) => path.join(templateDir as string, filename);
+  const inProjectDir = (filename: string) =>
+    path.join(projectDir as string, filename);
+  const inTemplateDir = (filename: string) =>
+    path.join(templateDir as string, filename);
 
-  scaffoldFile(inTemplateDir('Makefile'), inProjectDir('Makefile'), 'NAME=program', `NAME=${questions.outputName.defaultVal}`);
+  scaffoldFile(
+    inTemplateDir("Makefile"),
+    inProjectDir("Makefile"),
+    "NAME=program",
+    `NAME=${questions.outputName.defaultVal}`
+  );
   if (questions.gitIgnore.defaultVal) {
     exec(`git init ${questions.projectName.defaultVal}`);
-    scaffoldFile(inTemplateDir('/gitignore'), inProjectDir('/.gitignore'), 'program', `${questions.outputName.defaultVal}`);
+    scaffoldFile(
+      inTemplateDir("/gitignore"),
+      inProjectDir("/.gitignore"),
+      "program",
+      `${questions.outputName.defaultVal}`
+    );
   }
-  createFolder(projectDir, 'src');
-  scaffoldFile(inTemplateDir('src/main.c'), inProjectDir(`src/${questions.entryPoint.defaultVal}`), '#include "../include/program.h"', `#include "../include/${questions.outputName.defaultVal}.h"`);
-  createFolder(projectDir, 'include');
-  scaffoldFile(inTemplateDir('include/program.h'), inProjectDir(`include/${questions.outputName.defaultVal}.h`));
+  createFolder(projectDir, "src");
+  scaffoldFile(
+    inTemplateDir("src/main.c"),
+    inProjectDir(`src/${questions.entryPoint.defaultVal}`),
+    '#include "../include/program.h"',
+    `#include "../include/${questions.outputName.defaultVal}.h"`
+  );
+  createFolder(projectDir, "include");
+  scaffoldFile(
+    inTemplateDir("include/program.h"),
+    inProjectDir(`include/${questions.outputName.defaultVal}.h`)
+  );
   if (questions.debugConfig.defaultVal) {
-    createFolder(projectDir, '.vscode');
-    scaffoldFile(inTemplateDir('.vscode/launch.json'), inProjectDir(`.vscode/launch.json`), '"program": "${workspaceFolder}/program",', `"program": "\${workspaceFolder}/${questions.outputName.defaultVal}",`);
-    scaffoldFile(inTemplateDir('.vscode/tasks.json'), inProjectDir(`.vscode/tasks.json`));
+    createFolder(projectDir, ".vscode");
+    scaffoldFile(
+      inTemplateDir(".vscode/launch.json"),
+      inProjectDir(`.vscode/launch.json`),
+      '"program": "${workspaceFolder}/program",',
+      `"program": "\${workspaceFolder}/${questions.outputName.defaultVal}",`
+    );
+    scaffoldFile(
+      inTemplateDir(".vscode/tasks.json"),
+      inProjectDir(`.vscode/tasks.json`)
+    );
   }
-}
+};
 
 const main = async function () {
   const rl = readline.createInterface({
