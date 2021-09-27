@@ -8,7 +8,7 @@ import { exec } from "child_process";
 import url from "url";
 
 class Question {
-  constructor(public question: string, public defaultVal: string) {}
+  constructor(public question: string, public answer: string) {}
 }
 
 interface IQuestions {
@@ -40,7 +40,7 @@ const collectAnswers = async function (
   const ask = util.promisify(qWrapper);
   for (const question of questions) {
     const answer = await ask(question.question);
-    if (answer.length > 0) question.defaultVal = answer;
+    if (answer.length > 0) question.answer = answer;
   }
   readlineInterface.close();
 };
@@ -69,7 +69,7 @@ const scaffold = function (cwd: string, questions: IQuestions) {
 
   const projectDir = createFolder(
     cwd,
-    questions.projectName.defaultVal
+    questions.projectName.answer
   );
   if (projectDir instanceof Error) {
     console.log(projectDir.message);
@@ -88,36 +88,36 @@ const scaffold = function (cwd: string, questions: IQuestions) {
     inTemplateDir("Makefile"),
     inProjectDir("Makefile"),
     "NAME=program",
-    `NAME=${questions.outputName.defaultVal}`
+    `NAME=${questions.outputName.answer}`
   );
-  if (questions.gitIgnore.defaultVal.toLowerCase() == "yes") {
-    exec(`git init ${questions.projectName.defaultVal}`);
+  if (questions.gitIgnore.answer.toLowerCase() == "yes") {
+    exec(`git init ${questions.projectName.answer}`);
     scaffoldFile(
       inTemplateDir("/gitignore"),
       inProjectDir("/.gitignore"),
       "program",
-      `${questions.outputName.defaultVal}`
+      `${questions.outputName.answer}`
     );
   }
   createFolder(projectDir, "src");
   scaffoldFile(
     inTemplateDir("src/main.c"),
-    inProjectDir(`src/${questions.entryPoint.defaultVal}`),
+    inProjectDir(`src/${questions.entryPoint.answer}`),
     '#include "../include/program.h"',
-    `#include "../include/${questions.outputName.defaultVal}.h"`
+    `#include "../include/${questions.outputName.answer}.h"`
   );
   createFolder(projectDir, "include");
   scaffoldFile(
     inTemplateDir("include/program.h"),
-    inProjectDir(`include/${questions.outputName.defaultVal}.h`)
+    inProjectDir(`include/${questions.outputName.answer}.h`)
   );
-  if (questions.debugConfig.defaultVal.toLowerCase() == "yes") {
+  if (questions.debugConfig.answer.toLowerCase() == "yes") {
     createFolder(projectDir, ".vscode");
     scaffoldFile(
       inTemplateDir(".vscode/launch.json"),
       inProjectDir(`.vscode/launch.json`),
       '"program": "${workspaceFolder}/program",',
-      `"program": "\${workspaceFolder}/${questions.outputName.defaultVal}",`
+      `"program": "\${workspaceFolder}/${questions.outputName.answer}",`
     );
     scaffoldFile(
       inTemplateDir(".vscode/tasks.json"),
