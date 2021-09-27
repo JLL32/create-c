@@ -8,7 +8,7 @@ import { exec } from "child_process";
 import url from "url";
 
 class Question {
-  constructor(public question: string, public defaultVal: string | boolean) {}
+  constructor(public question: string, public defaultVal: string) {}
 }
 
 interface IQuestions {
@@ -23,8 +23,8 @@ const questions: IQuestions = {
   projectName: new Question("Project name (c-project): ", "c-project"),
   entryPoint: new Question("Entry point (main.c): ", "main.c"),
   outputName: new Question("Output name (program): ", "program"),
-  debugConfig: new Question("Debugging configuration? (yes): ", true),
-  gitIgnore: new Question(".gitignore? (yes): ", true),
+  debugConfig: new Question("Debugging configuration? (yes): ", "yes"),
+  gitIgnore: new Question(".gitignore? (yes): ", "yes"),
 };
 
 const collectAnswers = async function (
@@ -69,7 +69,7 @@ const scaffold = function (cwd: string, questions: IQuestions) {
 
   const projectDir = createFolder(
     cwd,
-    questions.projectName.defaultVal as string
+    questions.projectName.defaultVal
   );
   if (projectDir instanceof Error) {
     console.log(projectDir.message);
@@ -80,9 +80,9 @@ const scaffold = function (cwd: string, questions: IQuestions) {
     path.dirname(url.fileURLToPath(import.meta.url)) + "/../template";
 
   const inProjectDir = (filename: string) =>
-    path.join(projectDir as string, filename);
+    path.join(projectDir, filename);
   const inTemplateDir = (filename: string) =>
-    path.join(templateDir as string, filename);
+    path.join(templateDir, filename);
 
   scaffoldFile(
     inTemplateDir("Makefile"),
@@ -90,7 +90,7 @@ const scaffold = function (cwd: string, questions: IQuestions) {
     "NAME=program",
     `NAME=${questions.outputName.defaultVal}`
   );
-  if (questions.gitIgnore.defaultVal) {
+  if (questions.gitIgnore.defaultVal.toLowerCase() == "yes") {
     exec(`git init ${questions.projectName.defaultVal}`);
     scaffoldFile(
       inTemplateDir("/gitignore"),
@@ -111,7 +111,7 @@ const scaffold = function (cwd: string, questions: IQuestions) {
     inTemplateDir("include/program.h"),
     inProjectDir(`include/${questions.outputName.defaultVal}.h`)
   );
-  if (questions.debugConfig.defaultVal) {
+  if (questions.debugConfig.defaultVal.toLowerCase() == "yes") {
     createFolder(projectDir, ".vscode");
     scaffoldFile(
       inTemplateDir(".vscode/launch.json"),
@@ -121,7 +121,7 @@ const scaffold = function (cwd: string, questions: IQuestions) {
     );
     scaffoldFile(
       inTemplateDir(".vscode/tasks.json"),
-      inProjectDir(`.vscode/tasks.json`)
+      inProjectDir(".vscode/tasks.json")
     );
   }
 };
