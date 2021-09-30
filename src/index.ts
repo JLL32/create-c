@@ -48,4 +48,4 @@ const main = async function () {
   console.log("Done 🎉");
 };
 
-await main();
+main();
