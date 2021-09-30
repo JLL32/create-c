@@ -39,7 +39,12 @@ const main = async function () {
   });
   await collectAnswers(Object.values(questions), rl);
   console.log("Scaffolding your project 🪄");
-  scaffold(process.cwd(), questions);
+  try {
+    scaffold(process.cwd(), questions);
+  } catch (err) {
+    console.log((err as Error).message);
+    return;
+  }
   console.log("Done 🎉");
 };
 
