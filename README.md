@@ -1,7 +1,7 @@
 # create-c
 
 Create C projects ready to run and debug with zero configuration
-<img width="361" alt="Screen Shot 2021-09-30 at 10 03 14" src="https://user-images.githubusercontent.com/26872714/135422468-8c3a7c88-b09f-4a5b-b26d-04f56440f5b0.png">
+[Screen Shot 2021-09-30 at 10 03 14](https://user-images.githubusercontent.com/26872714/135422468-8c3a7c88-b09f-4a5b-b26d-04f56440f5b0.png)
 
 ## Installation
 
