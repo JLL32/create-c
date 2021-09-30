@@ -20,7 +20,7 @@ Just run it
 ## Features
 
 - Makefile with all the necessary rules
-- Debugging Configuration with a pre-luanch task so don't have to recompile manually
+- Debugging Configuration with a pre-launch task so don't have to recompile manually
 - A gitignore pre-made for C/C++ projects (output name and .DS_Store are included too)
 
 ## Contributing
